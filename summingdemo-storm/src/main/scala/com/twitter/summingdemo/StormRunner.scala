@@ -16,15 +16,100 @@
 
 package com.twitter.summingdemo
 
+import backtype.storm.Config
 import com.twitter.summingbird.kryo.KryoRegistrationHelper
+import com.twitter.algebird._
 import com.twitter.summingbird._
+import com.twitter.summingbird.batch.BatchID
 import com.twitter.summingbird.storm.{ MergeableStoreSupplier, Storm }
 import com.twitter.tormenta.spout.{ Spout, TwitterSpout }
 import twitter4j.TwitterStreamFactory
 import twitter4j.conf.ConfigurationBuilder
 
+object ExerciseRunner {
+  import StormRunner._, Exercises._
+  import Serialization._, Storage.batcher
+
+  /**
+    * When this main method is executed, Storm will begin running on a
+    * separate thread on the local machine, pulling tweets off of the
+    * TwitterSpout, generating and aggregating key-value pairs and
+    * merging the incremental counts in the memcache store.
+    *
+    * Before running this code, make sure to start a local memcached
+    * instance with "memcached". ("brew install memcached" will get
+    * you all set up if you don't already have memcache installed
+    * locally.)
+    */
+  def main(args: Array[String]) {
+    Storm.local(args(0))
+      .withConfigUpdater(registrations(_))
+      .run(
+      args(0) match {
+        case "word-count" =>  wordCount[Storm](spout, storeSupplier)
+        case "letter-count" => letterCount[Storm](spout, storeSupplier)
+        case "tweet-count" => tweetCount[Storm](spout, storeSupplier)
+        case "custom-count" =>
+          tweetCountWithCustomMonoid[Storm](spout) { implicit mon: Monoid[Long] =>
+            MergeableStoreSupplier.from(
+              Storage.mergeable[(String, BatchID), Long]("wordCount")
+            )
+          }
+        case "trends" => trendJob[Storm](spout,
+          MergeableStoreSupplier.from(Storage.trendStore)
+        )
+      }
+    )
+  }
+}
+
+object SolutionRunner {
+  import StormRunner._, Solutions._
+  import Serialization._, Storage.batcher
+
+  /**
+    * When this main method is executed, Storm will begin running on a
+    * separate thread on the local machine, pulling tweets off of the
+    * TwitterSpout, generating and aggregating key-value pairs and
+    * merging the incremental counts in the memcache store.
+    *
+    * Before running this code, make sure to start a local memcached
+    * instance with "memcached". ("brew install memcached" will get
+    * you all set up if you don't already have memcache installed
+    * locally.)
+    */
+  def main(args: Array[String]) {
+    Storm.local(args(0))
+      .withConfigUpdater(registrations(_))
+      .run(
+      args(0) match {
+        case "word-count" =>  wordCount[Storm](spout, storeSupplier)
+        case "letter-count" => letterCount[Storm](spout, storeSupplier)
+        case "tweet-count" => tweetCount[Storm](spout, storeSupplier)
+        case "custom-count" =>
+          tweetCountWithCustomMonoid[Storm](spout) { implicit mon: Monoid[Long] =>
+            MergeableStoreSupplier.from(
+              Storage.mergeable[(String, BatchID), Long]("wordCount")
+            )
+          }
+        case "trends" => trendJob[Storm](spout,
+          MergeableStoreSupplier.from(Storage.trendStore)
+        )
+      }
+    )
+  }
+}
+
 object StormRunner {
-  import Storage.batcher, SummingbirdJobs._, Serialization._
+  import Storage.batcher, Serialization._
+
+  def registrations(conf: Config): Config = {
+    KryoRegistrationHelper.registerInjections(
+      conf,
+      Seq(Serialization.injectionPair(SketchMapImplicits.sketchMapInjection))
+    )
+    conf
+  }
 
   /**
     * Configuration for Twitter4j. Configuration can also be managed
@@ -48,35 +133,4 @@ object StormRunner {
 
   val storeSupplier: MergeableStoreSupplier[String, Long] =
     MergeableStoreSupplier.from(Storage.stringLongStore)
-
-  /**
-    * When this main method is executed, Storm will begin running on a
-    * separate thread on the local machine, pulling tweets off of the
-    * TwitterSpout, generating and aggregating key-value pairs and
-    * merging the incremental counts in the memcache store.
-    *
-    * Before running this code, make sure to start a local memcached
-    * instance with "memcached". ("brew install memcached" will get
-    * you all set up if you don't already have memcache installed
-    * locally.)
-    */
-  def main(args: Array[String]) {
-    Storm.local(args(0))
-      .withConfigUpdater { conf =>
-      KryoRegistrationHelper.registerInjections(
-        conf,
-        Seq(Serialization.injectionPair(SketchMapImplicits.sketchMapInjection))
-      )
-      conf
-    }.run(
-      args(0) match {
-        case "word-count" =>  wordCount[Storm](spout, storeSupplier)
-        case "letter-count" => letterCount[Storm](spout, storeSupplier)
-        case "tweet-count" => tweetCount[Storm](spout, storeSupplier)
-        case "trends" => trendJob[Storm](spout,
-          MergeableStoreSupplier.from(Storage.trendStore)
-        )
-      }
-    )
-  }
 }
