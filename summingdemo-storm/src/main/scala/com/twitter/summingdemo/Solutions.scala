@@ -67,7 +67,7 @@ object Solutions {
     * of the UI.
     */
   def tweetCount[P <: Platform[P]](
-    source: Producer[P, _],
+    source: Producer[P, Status],
     store: P#Store[String, Long]) =
     source
       .map(_ => Storage.globalKey -> 1L)
@@ -78,7 +78,7 @@ object Solutions {
     * a custom monoid that resets the count every 500 tweets.
     */
   def tweetCountWithCustomMonoid[P <: Platform[P]](
-    source: Producer[P, _]
+    source: Producer[P, Status]
   )(fn: Monoid[Long] => P#Store[String, Long]) = {
     val monoid: Monoid[Long] = new Monoid[Long] {
       val zero = 0L

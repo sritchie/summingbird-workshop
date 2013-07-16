@@ -4,24 +4,25 @@ This repository contains code for the Summingbird Workshop at Lambda Jam 2013.
 
 ## Dependencies
 
-To run this code, you'll need to install Memcached and Play. Both are available via homebrew.
+To run this code, you'll need to install Memcached. Both are available via homebrew.
 
 - Install Homebrew
-* `brew install memcached play`
+* `brew install memcached`
 
 ## Creating a ClientStore at the REPL
 
-To create a client, run `play summingdemo-client/console`, then the following scala commands:
+To create a client, run `./sbt summingdemo-client/console`, then the following scala commands:
 
 ```scala
 import com.twitter.summingdemo._
 import com.twitter.summingbird.store._
+import SketchMapImplicits._
 import Storage.batcher
 
 scala> val stringStore = ClientStore(Storage.stringLongStore, 3)
 stringStore: com.twitter.summingbird.store.ClientStore[String,Long] = com.twitter.summingbird.store.ClientStore@478674ae
 
-scala> val trendStore = ClientStore(Storage.stringLongStore, 3)
+scala> val trendStore = ClientStore(Storage.trendStore, 3)
 trendStore: com.twitter.summingbird.store.ClientStore[String,Long] = com.twitter.summingbird.store.ClientStore@198ec219
 ```
 
@@ -34,7 +35,7 @@ The workshop has a UI written using Play. This UI allows you to query the output
 First, fire up a Memcached instance with `memcached`. In a new terminal window, run the Play UI with the following command:
 
 ```bash
-play summingdemo-client/run
+./sbt summingdemo-client/run
 ```
 
 The UI will be available at [http://localhost:9000](). The UI takes a comma-separated list of string keys and graphs the results over time for each key. You can click "Counts" to see the counts for each key, or "Ratios" to see the weight of each key relative to the others.
@@ -42,7 +43,7 @@ The UI will be available at [http://localhost:9000](). The UI takes a comma-sepa
 Now, fire up a local Storm instance like so:
 
 ```bash
-play summingdemo-storm/"run tweet-count"
+./sbt summingdemo-storm/"run tweet-count"
 ```
 
 Test that everything is working by typing "ALL" into the search bar and hitting the "Counts" link. You should see a line rising off to the right.
@@ -50,7 +51,7 @@ Test that everything is working by typing "ALL" into the search bar and hitting 
 You can also test the the REPL interaction is working by creating a REPL, as described above:
 
 ```scala
-// First, run `play summingdemo-client/console` in a shell.
+// First, run `./sbt summingdemo-client/console` in a shell.
 
 import com.twitter.summingdemo._
 import com.twitter.summingbird.store._

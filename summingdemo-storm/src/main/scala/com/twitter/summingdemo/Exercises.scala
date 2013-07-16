@@ -45,7 +45,7 @@ object Exercises {
       .split("\\s+")
 
   def tweetCount[P <: Platform[P]](
-    source: Producer[P, _],
+    source: Producer[P, Status],
     store: P#Store[String, Long]) =
     sys.error(
       """Write a job that calculates a count of ALL tweets that have come

@@ -10,3 +10,4 @@ project/plugins/src_managed/
 /.idea/
 /.idea_modules/
 *.iml
+RUNNING_PID
