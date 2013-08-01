@@ -37,7 +37,7 @@ First, fire up a Memcached instance with `memcached`. In a new terminal window, 
 play summingdemo-client/run
 ```
 
-The UI will be available at [http://localhost:9000](). The UI takes a comma-separated list of string keys and graphs the results over time for each key. You can click "Counts" to see the counts for each key, or "Ratios" to see the weight of each key relative to the others.
+The UI will be available at [http://localhost:9000](http://localhost:9000). The UI takes a comma-separated list of string keys and graphs the results over time for each key. You can click "Counts" to see the counts for each key, or "Ratios" to see the weight of each key relative to the others.
 
 Now, fire up a local Storm instance like so:
 
