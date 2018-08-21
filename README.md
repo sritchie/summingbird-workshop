@@ -48,7 +48,7 @@ Now, fire up a local Storm instance like so:
 
 Test that everything is working by typing "ALL" into the search bar and hitting the "Counts" link. You should see a line rising off to the right.
 
-You can also test the the REPL interaction is working by creating a REPL, as described above:
+You can also test the REPL interaction is working by creating a REPL, as described above:
 
 ```scala
 // First, run `./sbt summingdemo-client/console` in a shell.
